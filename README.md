@@ -1,3 +1,9 @@
+# DEPRECATION NOTICE
+
+The ``nem2-library-js`` package is no longer maintained. 
+The library has been integrated into the [symbol-sdk-typescript-javascript-project](https://github.com/nemtech/symbol-sdk-typescript-javascript).
+To continue using the project or advance its development, please create a custom fork.
+
 # nem2-library-js
 
 [![npm version](https://badge.fury.io/js/nem2-library.svg)](https://badge.fury.io/js/nem2-library)
