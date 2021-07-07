@@ -101,8 +101,8 @@ export default class AggregateTransaction extends VerifiableTransaction {
 		return Builder;
 	}
 
-	signTransactionWithCosigners(initializer, cosigners) {
-		const signedTransaction = this.signTransaction(initializer);
+	signTransactionWithCosigners(initializer, cosigners, generationHash) {
+		const signedTransaction = this.signTransaction(initializer, generationHash);
 		cosigners.forEach(cosigner => {
 			const signatureTransaction = new CosignatureTransaction(signedTransaction.hash);
 			const signatureCosignTransaction = signatureTransaction.signCosignatoriesTransaction(cosigner);
@@ -112,9 +112,26 @@ export default class AggregateTransaction extends VerifiableTransaction {
 		// Calculate new size
 		const size = `00000000${(signedTransaction.payload.length / 2).toString(16)}`;
 		const formatedSize = size.substr(size.length - 8, size.length);
-		const littleIndianSize = formatedSize.substr(6, 2) + formatedSize.substr(4, 2) + formatedSize.substr(2, 2) + formatedSize.substr(0, 2);
+		const littleEndianSize = formatedSize.substr(6, 2) + formatedSize.substr(4, 2) + formatedSize.substr(2, 2) + formatedSize.substr(0, 2);
 
-		signedTransaction.payload = littleIndianSize +
+		signedTransaction.payload = littleEndianSize +
+			signedTransaction.payload.substr(8, signedTransaction.payload.length - 8);
+
+		return signedTransaction;
+	}
+
+	signTransactionGivenSignatures(initializer, cosignedSignedTransactions, generationHash) {
+		const signedTransaction = this.signTransaction(initializer, generationHash);
+		cosignedSignedTransactions.forEach(cosignedTransaction => {
+			signedTransaction.payload = signedTransaction.payload + cosignedTransaction.signer + cosignedTransaction.signature;
+		});
+
+		// Calculate new size
+		const size = `00000000${(signedTransaction.payload.length / 2).toString(16)}`;
+		const formatedSize = size.substr(size.length - 8, size.length);
+		const littleEndianSize = formatedSize.substr(6, 2) + formatedSize.substr(4, 2) + formatedSize.substr(2, 2) + formatedSize.substr(0, 2);
+
+		signedTransaction.payload = littleEndianSize +
 			signedTransaction.payload.substr(8, signedTransaction.payload.length - 8);
 
 		return signedTransaction;
